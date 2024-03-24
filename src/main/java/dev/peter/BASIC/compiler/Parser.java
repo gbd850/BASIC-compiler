@@ -42,5 +42,110 @@ public class Parser {
     }
 
     public void program() {
+        System.err.println("PROGRAM");
+
+        while (this.checkToken(TokenType.NEWLINE)) {
+            this.nextToken();
+        }
+
+        while (!this.checkToken(TokenType.EOF)) {
+            this.statement();
+        }
+    }
+
+    private void statement() {
+//        "PRINT" (expression | string)
+        if (this.checkToken(TokenType.PRINT)) {
+            System.err.println("STATEMENT - PRINT");
+            this.nextToken();
+
+            if (this.checkToken(TokenType.STRING)) {
+                this.nextToken();
+            } else {
+                this.expression();
+            }
+        }
+//        "IF" comparison "THEN" {statement} "ENDIF"
+        else if (this.checkToken(TokenType.IF)) {
+            System.err.println("STATEMENT - IF");
+
+            this.nextToken();
+            this.comparison();
+
+            this.match(TokenType.THEN);
+            this.nl();
+
+            while (!this.checkToken(TokenType.ENDIF)) {
+                this.statement();
+            }
+            this.match(TokenType.ENDIF);
+        }
+//        "WHILE" comparison "REPEAT" {statement} "ENDWHILE"
+        else if (this.checkToken(TokenType.WHILE)) {
+            System.err.println("STATEMENT - WHILE");
+
+            this.nextToken();
+            this.comparison();
+
+            this.match(TokenType.REPEAT);
+            this.nl();
+
+            while (!this.checkToken(TokenType.ENDWHILE)) {
+                this.statement();
+            }
+            this.match(TokenType.ENDWHILE);
+        }
+//        "LABEL" ident
+        else if (this.checkToken(TokenType.LABEL)) {
+            System.err.println("STATEMENT - LABEL");
+
+            this.nextToken();
+            this.match(TokenType.IDENT);
+        }
+//        "GOTO" ident
+        else if (this.checkToken(TokenType.GOTO)) {
+            System.err.println("STATEMENT - GOTO");
+
+            this.nextToken();
+            this.match(TokenType.IDENT);
+        }
+//        "LET" ident "=" expression
+        else if (this.checkToken(TokenType.LET)) {
+            System.err.println("STATEMENT - LET");
+
+            this.nextToken();
+            this.match(TokenType.IDENT);
+            this.match(TokenType.EQ);
+            this.expression();
+        }
+//        "INPUT" ident
+        else if (this.checkToken(TokenType.INPUT)) {
+            System.err.println("STATEMENT - INPUT");
+
+            this.nextToken();
+            this.match(TokenType.IDENT);
+        }
+        else {
+            this.abort("Invalid statement at " + this.curToken.tokenText() + " (" + this.curToken.tokenType().name() + ")");
+        }
+
+        this.nl();
+    }
+
+    private void comparison() {
+
+    }
+
+    private void expression() {
+
+    }
+
+    private void nl() {
+        System.err.println("NEWLINE");
+
+        this.match(TokenType.NEWLINE);
+        while (this.checkToken(TokenType.NEWLINE)) {
+            this.nextToken();
+        }
     }
 }
