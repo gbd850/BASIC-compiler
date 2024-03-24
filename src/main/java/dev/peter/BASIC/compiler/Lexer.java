@@ -40,7 +40,7 @@ public class Lexer {
         return this.source.charAt(this.curPos + 1);
     }
 
-    public void abort(String message) {
+    private void abort(String message) {
         throw new RuntimeException("Lexing error: " + message);
     }
 
