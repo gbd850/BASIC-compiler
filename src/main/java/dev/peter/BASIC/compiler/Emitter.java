@@ -27,7 +27,7 @@ public class Emitter {
     }
 
     public void headerLine(String code) {
-        this.header = code + '\n';
+        this.header += code + '\n';
     }
 
     public void writeFile() {

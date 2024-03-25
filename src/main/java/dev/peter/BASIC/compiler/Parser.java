@@ -57,17 +57,28 @@ public class Parser {
         throw new RuntimeException("Parsing error: " + message);
     }
 
+//    program ::= {statement}
     public void program() {
         System.err.println("PROGRAM");
 
+        this.emitter.headerLine("#include <stdio.h>");
+        this.emitter.headerLine("int main(void) {");
+
+//        Since some newlines are required in our grammar, need to skip the excess.
         while (this.checkToken(TokenType.NEWLINE)) {
             this.nextToken();
         }
 
+//        Parse all the statements in the program.
         while (!this.checkToken(TokenType.EOF)) {
             this.statement();
         }
 
+//        Wrap things up.
+        this.emitter.emitLine("return 0;");
+        this.emitter.emitLine("}");
+
+//        Check that each label referenced in a GOTO is declared.
         for (String label : this.labelsGotoed) {
             if (!this.labelsDeclared.contains(label)) {
                 this.abort("Attemtping to GOTO to undeclared label: " + label);
@@ -82,9 +93,12 @@ public class Parser {
             this.nextToken();
 
             if (this.checkToken(TokenType.STRING)) {
+                this.emitter.emitLine("printf(\"" + this.curToken.tokenText() + "\\n\");");
                 this.nextToken();
             } else {
+                this.emitter.emit("printf(\"%.2f\\n\", (float) (");
                 this.expression();
+                this.emitter.emitLine("));");
             }
         }
 //        "IF" comparison "THEN" {statement} "ENDIF"
@@ -92,30 +106,36 @@ public class Parser {
             System.err.println("STATEMENT - IF");
 
             this.nextToken();
+            this.emitter.emit("if (");
             this.comparison();
 
             this.match(TokenType.THEN);
             this.nl();
+            this.emitter.emitLine(") {");
 
             while (!this.checkToken(TokenType.ENDIF)) {
                 this.statement();
             }
             this.match(TokenType.ENDIF);
+            this.emitter.emitLine("}");
         }
 //        "WHILE" comparison "REPEAT" {statement} "ENDWHILE"
         else if (this.checkToken(TokenType.WHILE)) {
             System.err.println("STATEMENT - WHILE");
 
             this.nextToken();
+            this.emitter.emit("while (");
             this.comparison();
 
             this.match(TokenType.REPEAT);
             this.nl();
+            this.emitter.emitLine(") {");
 
             while (!this.checkToken(TokenType.ENDWHILE)) {
                 this.statement();
             }
             this.match(TokenType.ENDWHILE);
+            this.emitter.emitLine("}");
         }
 //        "LABEL" ident
         else if (this.checkToken(TokenType.LABEL)) {
@@ -128,6 +148,7 @@ public class Parser {
             }
             this.labelsDeclared.add(this.curToken.tokenText());
 
+            this.emitter.emitLine(this.curToken.tokenText() + ":");
             this.match(TokenType.IDENT);
         }
 //        "GOTO" ident
@@ -136,6 +157,7 @@ public class Parser {
 
             this.nextToken();
             this.labelsGotoed.add(this.curToken.tokenText());
+            this.emitter.emitLine("goto " + this.curToken.tokenText() + ";");
             this.match(TokenType.IDENT);
         }
 //        "LET" ident "=" expression
@@ -144,11 +166,17 @@ public class Parser {
 
             this.nextToken();
 
-            this.symbols.add(this.curToken.tokenText());
+            if (!this.symbols.contains(this.curToken.tokenText())) {
+                this.symbols.add(this.curToken.tokenText());
+                this.emitter.headerLine("float " + this.curToken.tokenText() + ";");
+            }
 
+            this.emitter.emit(this.curToken.tokenText() + " = ");
             this.match(TokenType.IDENT);
             this.match(TokenType.EQ);
+
             this.expression();
+            this.emitter.emitLine(";");
         }
 //        "INPUT" ident
         else if (this.checkToken(TokenType.INPUT)) {
@@ -156,8 +184,16 @@ public class Parser {
 
             this.nextToken();
 
-            this.symbols.add(this.curToken.tokenText());
+            if (!this.symbols.contains(this.curToken.tokenText())) {
+                this.symbols.add(this.curToken.tokenText());
+                this.emitter.headerLine("float " + this.curToken.tokenText() + ";");
+            }
 
+//            Emit scanf but also validate the input. If invalid, set the variable to 0 and clear the input.
+            this.emitter.emitLine("if (0 == scanf(\"%f\", &" + this.curToken.tokenText() + ")) {");
+            this.emitter.emitLine(this.curToken.tokenText() + " = 0;");
+            this.emitter.emitLine("scanf(\"%*s\");");
+            this.emitter.emitLine("}");
             this.match(TokenType.IDENT);
         }
         else {

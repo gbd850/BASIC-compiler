@@ -23,6 +23,6 @@ public class Main {
 
         parser.program();
         emitter.writeFile();
-        System.out.println("Parsing completed");
+        System.out.println("Compiling completed");
     }
 }
