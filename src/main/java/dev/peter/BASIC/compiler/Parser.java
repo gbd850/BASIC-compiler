@@ -62,6 +62,7 @@ public class Parser {
         System.err.println("PROGRAM");
 
         this.emitter.headerLine("#include <stdio.h>");
+        this.emitter.headerLine("#include <stdlib.h>");
         this.emitter.headerLine("int main(void) {");
 
 //        Since some newlines are required in our grammar, need to skip the excess.
@@ -75,6 +76,7 @@ public class Parser {
         }
 
 //        Wrap things up.
+        this.emitter.emitLine("system ( \"PAUSE\" );");
         this.emitter.emitLine("return 0;");
         this.emitter.emitLine("}");
 

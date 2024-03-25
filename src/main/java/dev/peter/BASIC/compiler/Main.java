@@ -27,7 +27,7 @@ public class Main {
         System.out.println("Compiling completed");
 
         try {
-            Thread.sleep(100);
+            Thread.sleep(200);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -42,13 +42,13 @@ public class Main {
         }
 
         try {
-            Thread.sleep(100);
+            Thread.sleep(200);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
 
         try {
-            String commandRun = "output.exe";
+            String commandRun = "cmd.exe /c start .\\output.exe";
             Process process = sys.exec(commandRun, null, new File("."));
         } catch (IOException e) {
             e.printStackTrace();
