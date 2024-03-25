@@ -1,5 +1,6 @@
 package dev.peter.BASIC.compiler;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -24,5 +25,34 @@ public class Main {
         parser.program();
         emitter.writeFile();
         System.out.println("Compiling completed");
+
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+//        Compiling C code and running the program
+        Runtime sys = Runtime.getRuntime();
+        try {
+            String commandGcc = "gcc " + args[1] + " -o output.exe";
+            Process process = sys.exec(commandGcc);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+        try {
+            String commandRun = "output.exe";
+            Process process = sys.exec(commandRun, null, new File("."));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 }

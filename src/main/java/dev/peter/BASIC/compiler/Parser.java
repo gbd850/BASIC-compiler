@@ -210,6 +210,7 @@ public class Parser {
         this.expression();
 
         if (this.isComparisonOperator()) {
+            this.emitter.emit(this.curToken.tokenText());
             this.nextToken();
             this.expression();
         }
@@ -218,6 +219,7 @@ public class Parser {
         }
 
         while (this.isComparisonOperator()) {
+            this.emitter.emit(this.curToken.tokenText());
             this.nextToken();
             this.expression();
         }
@@ -239,6 +241,7 @@ public class Parser {
         this.term();
 
         while (this.checkToken(TokenType.PLUS) || this.checkToken(TokenType.MINUS)) {
+            this.emitter.emit(this.curToken.tokenText());
             this.nextToken();
             this.term();
         }
@@ -250,6 +253,7 @@ public class Parser {
 
         this.unary();
         while (this.checkToken(TokenType.SLASH) || this.checkToken(TokenType.ASTERISK)) {
+            this.emitter.emit(this.curToken.tokenText());
             this.nextToken();
             this.unary();
         }
@@ -260,6 +264,7 @@ public class Parser {
         System.err.println("UNARY");
 
         if (this.checkToken(TokenType.PLUS) || this.checkToken(TokenType.MINUS)) {
+            this.emitter.emit(this.curToken.tokenText());
             this.nextToken();
         }
         this.primary();
@@ -270,11 +275,13 @@ public class Parser {
         System.err.println("PRIMARY (" + this.curToken.tokenText() + ")");
 
         if (this.checkToken(TokenType.NUMBER)) {
+            this.emitter.emit(this.curToken.tokenText());
             this.nextToken();
         } else if (this.checkToken(TokenType.IDENT)) {
             if (!this.symbols.contains(this.curToken.tokenText())) {
                 this.abort("Referencing variable before assignment: " + this.curToken.tokenText());
             }
+            this.emitter.emit(this.curToken.tokenText());
             this.nextToken();
         }
         else {
