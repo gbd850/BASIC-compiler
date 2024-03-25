@@ -132,12 +132,78 @@ public class Parser {
         this.nl();
     }
 
+//    comparison ::= expression (("==" | "!=" | ">" | ">=" | "<" | "<=") expression)+
     private void comparison() {
+        System.err.println("COMPARISON");
 
+        this.expression();
+
+        if (this.isComparisonOperator()) {
+            this.nextToken();
+            this.expression();
+        }
+        else {
+            this.abort("Expected comparison operator at: " + this.curToken.tokenText());
+        }
+
+        while (this.isComparisonOperator()) {
+            this.nextToken();
+            this.expression();
+        }
     }
 
-    private void expression() {
+    private boolean isComparisonOperator() {
+        return this.checkToken(TokenType.GT) ||
+                this.checkToken(TokenType.GTEQ) ||
+                this.checkToken(TokenType.LT) ||
+                this.checkToken(TokenType.LTEQ) ||
+                this.checkToken(TokenType.EQEQ) ||
+                this.checkToken(TokenType.NOTEQ);
+    }
 
+//    expression ::= term {( "-" | "+" ) term}
+    private void expression() {
+        System.err.println("EXPRESSION");
+
+        this.term();
+
+        while (this.checkToken(TokenType.PLUS) || this.checkToken(TokenType.MINUS)) {
+            this.nextToken();
+            this.term();
+        }
+    }
+
+//    term ::= unary {( "/" | "*" ) unary}
+    private void term() {
+        System.err.println("TERM");
+
+        this.unary();
+        while (this.checkToken(TokenType.SLASH) || this.checkToken(TokenType.ASTERISK)) {
+            this.nextToken();
+            this.unary();
+        }
+    }
+
+//    unary ::= ["+" | "-"] primary
+    private void unary() {
+        System.err.println("UNARY");
+
+        if (this.checkToken(TokenType.PLUS) || this.checkToken(TokenType.MINUS)) {
+            this.nextToken();
+        }
+        this.primary();
+    }
+
+//    primary ::= number | ident
+    private void primary() {
+        System.err.println("PRIMARY (" + this.curToken.tokenText() + ")");
+
+        if (this.checkToken(TokenType.NUMBER) || this.checkToken(TokenType.IDENT)) {
+            this.nextToken();
+        }
+        else {
+            this.abort("Unexpected token at " + this.curToken.tokenText());
+        }
     }
 
     private void nl() {
