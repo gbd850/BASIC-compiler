@@ -7,8 +7,8 @@ import java.nio.file.Path;
 public class Main {
     public static void main(String[] args) {
 
-        if (args.length == 0) {
-            throw new RuntimeException("Error: Compile needs source file as argument");
+        if (args.length < 2) {
+            throw new RuntimeException("Error: Missing source file to compile and/or name of the output file");
         }
         Path filePath = Path.of(args[0]);
         String content;
@@ -18,9 +18,11 @@ public class Main {
             throw new RuntimeException(e);
         }
         Lexer lexer = new Lexer(content);
-        Parser parser = new Parser(lexer);
+        Emitter emitter = new Emitter(args[1]);
+        Parser parser = new Parser(lexer, emitter);
 
         parser.program();
+        emitter.writeFile();
         System.out.println("Parsing completed");
     }
 }

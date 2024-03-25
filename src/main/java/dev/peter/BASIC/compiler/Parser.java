@@ -7,6 +7,8 @@ public class Parser {
 
     private final Lexer lexer;
 
+    private final Emitter emitter;
+
     private Token curToken;
 
     private Token peekToken;
@@ -17,14 +19,16 @@ public class Parser {
 
     private Set<String> labelsGotoed;
 
-    public Parser(Lexer lexer) {
-        this.curToken = null;
-        this.peekToken = null;
+    public Parser(Lexer lexer, Emitter emitter) {
         this.lexer = lexer;
+        this.emitter = emitter;
+
         this.symbols = new HashSet<>();
         this.labelsDeclared = new HashSet<>();
         this.labelsGotoed = new HashSet<>();
 
+        this.curToken = null;
+        this.peekToken = null;
         this.nextToken();
         this.nextToken(); // Call this twice to initialize current and peek.
     }
