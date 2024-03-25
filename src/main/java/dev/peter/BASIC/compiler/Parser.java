@@ -1,5 +1,8 @@
 package dev.peter.BASIC.compiler;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class Parser {
 
     private final Lexer lexer;
@@ -8,10 +11,19 @@ public class Parser {
 
     private Token peekToken;
 
+    private Set<String> symbols;
+
+    private Set<String> labelsDeclared;
+
+    private Set<String> labelsGotoed;
+
     public Parser(Lexer lexer) {
         this.curToken = null;
         this.peekToken = null;
         this.lexer = lexer;
+        this.symbols = new HashSet<>();
+        this.labelsDeclared = new HashSet<>();
+        this.labelsGotoed = new HashSet<>();
 
         this.nextToken();
         this.nextToken(); // Call this twice to initialize current and peek.
@@ -50,6 +62,12 @@ public class Parser {
 
         while (!this.checkToken(TokenType.EOF)) {
             this.statement();
+        }
+
+        for (String label : this.labelsGotoed) {
+            if (!this.labelsDeclared.contains(label)) {
+                this.abort("Attemtping to GOTO to undeclared label: " + label);
+            }
         }
     }
 
@@ -100,6 +118,12 @@ public class Parser {
             System.err.println("STATEMENT - LABEL");
 
             this.nextToken();
+
+            if (this.labelsDeclared.contains(this.curToken.tokenText())) {
+                this.abort("Label already exists: " + this.curToken.tokenText());
+            }
+            this.labelsDeclared.add(this.curToken.tokenText());
+
             this.match(TokenType.IDENT);
         }
 //        "GOTO" ident
@@ -107,6 +131,7 @@ public class Parser {
             System.err.println("STATEMENT - GOTO");
 
             this.nextToken();
+            this.labelsGotoed.add(this.curToken.tokenText());
             this.match(TokenType.IDENT);
         }
 //        "LET" ident "=" expression
@@ -114,6 +139,9 @@ public class Parser {
             System.err.println("STATEMENT - LET");
 
             this.nextToken();
+
+            this.symbols.add(this.curToken.tokenText());
+
             this.match(TokenType.IDENT);
             this.match(TokenType.EQ);
             this.expression();
@@ -123,6 +151,9 @@ public class Parser {
             System.err.println("STATEMENT - INPUT");
 
             this.nextToken();
+
+            this.symbols.add(this.curToken.tokenText());
+
             this.match(TokenType.IDENT);
         }
         else {
@@ -198,7 +229,12 @@ public class Parser {
     private void primary() {
         System.err.println("PRIMARY (" + this.curToken.tokenText() + ")");
 
-        if (this.checkToken(TokenType.NUMBER) || this.checkToken(TokenType.IDENT)) {
+        if (this.checkToken(TokenType.NUMBER)) {
+            this.nextToken();
+        } else if (this.checkToken(TokenType.IDENT)) {
+            if (!this.symbols.contains(this.curToken.tokenText())) {
+                this.abort("Referencing variable before assignment: " + this.curToken.tokenText());
+            }
             this.nextToken();
         }
         else {
